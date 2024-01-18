@@ -5,6 +5,16 @@
 #include <alt_types.h>
 #include "sys/alt_sys_init.h"
 #include "opencores_i2c.h"
+#include <sys/alt_irq.h>
+#include "altera_avalon_pio_regs.h"
+#include "alt_types.h"
+#include "altera_avalon_timer_regs.h"
+#include "altera_avalon_timer.h"
+#include "sys/alt_irq.h"
+
+volatile __uint8_t cnt1 = 0,cnt2 = 0, cnt3 = 0;
+
+int16_t X, Y, Z;
 
 __uint8_t device, datax0 = 0, datay0 = 0, dataz0 = 0, datax1 = 0, datay1 = 0, dataz1 = 0;
 
@@ -47,6 +57,10 @@ unsigned int READ_XYZ(__uint8_t device, __uint8_t *X0, __uint8_t *X1, __uint8_t 
     I2C_write(OPENCORES_I2C_0_BASE, 0x37, 0); // set command to read input register.
     I2C_start(OPENCORES_I2C_0_BASE, device, 1);
     *Z1 = I2C_read(OPENCORES_I2C_0_BASE, 1); // Use 1 as the argument to indicate a NACK on the last read
+
+    
+
+
 }
 
 void WRITE_DATA(__uint8_t device, __uint8_t reg, __uint8_t data)
@@ -56,22 +70,10 @@ void WRITE_DATA(__uint8_t device, __uint8_t reg, __uint8_t data)
     I2C_write(OPENCORES_I2C_0_BASE, data, 1); // write the data and generate STOP condition
 }
 
-int main()
-{
-    int16_t X, Y, Z;
-    // most devices work at 100Khz  some faster
-    I2C_init(OPENCORES_I2C_0_BASE, 50000000, 400000);
-
-    // Boucle principale
-    device = 0x1D;
-    WRITE_DATA(device, 0x31, 0X7);
-    WRITE_DATA(device, 0x1E, 3);
-    WRITE_DATA(device, 0x1F, 5);
-    WRITE_DATA(device, 0x20, 200);
-
-    while (1)
+static void irqhandler(void* context, alt_u32 id)
 {
     READ_XYZ(device, &datax0, &datax1, &datay0, &datay1, &dataz0, &dataz1);
+    
     X = (datax1 << 8) + datax0;
     Y = (datay1 << 8) + datay0;
     Z = (dataz1 << 8) + dataz0;
@@ -88,9 +90,39 @@ int main()
     X = (int)(X * 3.9);
     Y = (int)(Y * 3.9);
     Z = (int)(Z * 3.9);
-
     alt_printf("x : %x; y : %x; z : %x;\n", X, Y, Z);
-    usleep(1000000);
+    
+    /*IOWR_ALTERA_AVALON_PIO_DATA(PIO_0_BASE, x_0);
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_1_BASE, x_1);
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_2_BASE, x_2);
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_3_BASE, x_3);
+    IOWR_ALTERA_AVALON_PIO_DATA(PIO_4_BASE, x_4);*/
+
+    IOWR_ALTERA_AVALON_TIMER_STATUS(TIMER_0_BASE, 0x1);
+    
+}
+
+
+int main()
+{
+    
+    alt_irq_register(TIMER_0_IRQ, NULL, irqhandler);
+    // most devices work at 100Khz  some faster
+    I2C_init(OPENCORES_I2C_0_BASE, 50000000, 400000);
+
+    // Boucle principale
+    device = 0x1D;
+    WRITE_DATA(device, 0x31, 0X7);
+    WRITE_DATA(device, 0x1E, 3);
+    WRITE_DATA(device, 0x1F, 5);
+    WRITE_DATA(device, 0x20, 200);
+
+    while (1)
+{
+    
+
+    //alt_printf("x : %x; y : %x; z : %x;\n", X, Y, Z);
+    //usleep(1000000);
 }
 return 0;
 
