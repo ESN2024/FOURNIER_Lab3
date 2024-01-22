@@ -35,8 +35,8 @@ begin
 					<= "10000000"; -- 8
             when "1001" => seg_bcd_output 
 					<= "10010000"; -- 9
-				when "1010" => seg_bcd_output 
-					<= "10111111"; -- 10 pour -
+				when "1011" => seg_bcd_output 
+					<= "10111111"; -- 11 pour -
             when others => seg_bcd_output 
 					<= "11111111"; -- eteintend case;
 		 end case;
