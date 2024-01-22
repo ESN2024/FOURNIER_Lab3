@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Ce TP met en pratique les concepts de conception conjointe vus en cours en travaillant avec une carte DE10-Lite équipée d'un FPGA MAX10 10M50DAF484C7G de la gamme Altera. L'objectif principal est d'afficher les données de l'accéléromètre interne sur les afficheur 7 segments avec possibilité de changer l'affichage selon les axes grâce à des witchs.
+Ce TP met en pratique les concepts de conception conjointe vus en cours en travaillant avec une carte DE10-Lite équipée d'un FPGA MAX10 10M50DAF484C7G de la gamme Altera. L'objectif principal est d'afficher les données de l'accéléromètre interne sur les afficheur 7 segments avec possibilité de changer l'affichage selon les axes grâce à un bouton poussoir.
 
 ## Architecture du Système
 
@@ -15,8 +15,9 @@ Le système comprend l'architecture de base avec :
 
 - Ajouts :
 - Cinq PIO 8 bits pour les 5 7 segments
-- Un PIO 8 bits pour les switchs
-
+- Un PIO 1 bit pour le bouton poussoir
+- Un timer
+  
 ![image](https://github.com/ESN2024/FOURNIER_Lab3/assets/124307686/db40c9fc-dc10-4919-8dda-8055c75f853e)
 
 
@@ -24,20 +25,25 @@ Le système comprend l'architecture de base avec :
 
 L'architecture sous Platform Designer (QSYS) inclut les composants mentionnés au-dessus.
 
-![image](https://github.com/ESN2024/FOURNIER_Lab1/assets/124307686/b3b4c6ab-9288-4ef6-8814-4502d66a651d)
+![image](https://github.com/ESN2024/FOURNIER_Lab3/assets/124307686/abc15d54-787a-4458-9bd2-78feb64368b5)
+![image](https://github.com/ESN2024/FOURNIER_Lab3/assets/124307686/1b4e2c23-49c6-416a-9d89-ec4b08fa6d31)
+
 
 ## Quartus et pin planner
 
-Dans Quartus, le fichier toplevel.vhd est rédigé, et un autre fichier VHDL est ajouté au projet pour convertir un nombre binaire codé sur 4 bits (cnt) en une représentation 7 segments (seg_bcd_output). Chaque valeur possible de cnt est associée à une configuration spécifique des segments 7, conformément à la logique commune des afficheurs 7 segments. Une fois les signaux reliés dans le top level, les assignations de broches sont effectuées dans le pin planner. Il est essentiel d'assigner correctement les broches pour les ajouts mentionnés en se référant à la documentation de la carte.
+Dans Quartus, le fichier toplevel.vhd est rédigé, et un autre fichier VHDL est ajouté au projet pour convertir un nombre binaire codé sur 4 bits (cnt) en une représentation 7 segments (seg_bcd_output). Chaque valeur possible de cnt est associée à une configuration spécifique des segments 7, conformément à la logique commune des afficheurs 7 segments. Une fois les signaux reliés dans le top level, les assignations de broches sont effectuées dans le pin planner. Il est essentiel d'assigner correctement les broches pour les ajouts mentionnés en se référant à la documentation de la carte. J'ai aussi mis le bouton poussoir en mode interruption et que celui-ci ait un niveau d'interruption plus fort que le timer pour le changement des axes.
 
 
-![image](https://github.com/ESN2024/FOURNIER_Lab1/assets/124307686/a2ece9aa-72f3-46b9-b9ae-b78acc63c600)
+![image](https://github.com/ESN2024/FOURNIER_Lab3/assets/124307686/a99911be-fb1c-4a40-aef2-2b4e472d30c2)
+![image](https://github.com/ESN2024/FOURNIER_Lab3/assets/124307686/32ccf73c-e681-4401-b70e-09aeba1767c8)
+
+
 
 Ensuite, la compilation complète du design est effectuée, le design est flashable sur la carte si aucune erreur n'est présente.
 
 ## Nios II Flow
 
-À partir du terminal Nios II, le BSP est généré et un Makefile est créé. Ensuite, les scripts C sont écrits, compilés et téléversés sur la carte.
+À partir du terminal Nios II, le BSP est généré et un Makefile est créé. Ensuite, les scripts C sont écrits, compilés et téléversés sur la carte. Nous avons aussi optimisé le bsp en enlevant les biblitothèques c++ et en utilisant des bibliothèques C plus légères pour laisser plus de mémoire. 
 
 ## Travail Effectué
 
@@ -72,15 +78,16 @@ Pour la calibration de l'accéléromètre, en suivant la documentation, nous avo
 
 ### L'affichage sur les 7 segments et ajout des modes en fonction des axes
 
-Une boucle while réalise l'affichage des données sur les 7 segments, et pour les allumer la fonction suivante est utilisée :
-`IOWR_AERA_AVALON_PIO_DATA(PIO_0_BASE, dx);` où dx est le digit à afficher (unité, dizaine,...). Selon la valeur de dx, un affichage est effectué selon le paramétrage dans le fichier seg_bcd.vhd. 
-Enfin, avec un if on compare la valeur des switchs. Selon leur position on affiche la valeur de l'accéléromètre de l'axe X, Y ou Z.
+Une boucle while avec l'interruption du timer réalise l'affichage des données sur les 7 segments, et pour les allumer la fonction suivante est utilisée :
+`IOWR_AERA_AVALON_PIO_DATA(PIO_x_BASE, dx);` où PIO_x_BASE est le 7 segment à allumer et le dx est le digit à afficher (unité, dizaine,...). Selon la valeur de dx, un affichage est effectué selon le paramétrage dans le fichier seg_bcd.vhd. 
+Enfin, avec un if on compare la valeur d'une variable qui est incrémenté a chaque appui du bouton poussoir. Si cette derniere est égale à 2 on remet la valeur à 1. 0correspond à l'axe X, 1 l'axe Y et 2 l'axe Z. Selon leur position on affiche la valeur de l'accéléromètre de l'axe X, Y ou Z.
 
 ## Démo
 
-https://github.com/ESN2024/FOURNIER_Lab2/assets/124307686/23a308cc-c77f-41e5-8aa1-909f3612a659
+
+https://github.com/ESN2024/FOURNIER_Lab3/assets/124307686/0305dce8-d4dc-412e-8721-2f898fefba45
 
 
 ## Conclusion
 
-Ce TP nous a permis de prendre en main les outils de conception conjointe, tout en utilisant nos connaissances acquises en cours, particulièrement au niveau des interruptions.
+Ce TP nous a permis de prendre en main les outils de conception conjointe, tout en utilisant nos connaissances acquises en cours, particulièrement au niveau des interruptions. De plus, en ayant effectué les LAB précédents, cela à facilité le développement de ce lab3. En effet, les interruptions sont gérées et l'affichage du 7 segment aussi. Le seul soucis etait lié à la documentation qui ne mettait pas en évidence les points particuliers concernant la définition de l'accéléromètre et l'offset.
