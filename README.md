@@ -17,7 +17,8 @@ Le système comprend l'architecture de base avec :
 - Cinq PIO 8 bits pour les 5 7 segments
 - Un PIO 8 bits pour les switchs
 
-![image](https://github.com/ESN2024/FOURNIER_Lab1/assets/124307686/62473487-3b94-4b38-ae21-3a9dfcabd89d)
+![image](https://github.com/ESN2024/FOURNIER_Lab3/assets/124307686/db40c9fc-dc10-4919-8dda-8055c75f853e)
+
 
 ## Platform Designer
 
@@ -46,7 +47,7 @@ J'ai découpé ce projet en plusieur partie, chacune réalisant une étape spéc
 
 En se référent à la documentation de l'accéléromètre on trouve les registres dans lesquels nous avons les information sur les différents paramètres important de l'accéléromètre :
 
-(https://github.com/ESN2024/FOURNIER_Lab3/assets/124307686/2b90bb09-2dff-44fc-b4e4-215b51b9c7bc)
+![image](https://github.com/ESN2024/FOURNIER_Lab3/assets/124307686/2b90bb09-2dff-44fc-b4e4-215b51b9c7bc)
 
 Les registres `0xIE` à `0x20` sont les registres permettant de calibrer l'accéléromètre.
 Le registre `0x31` est le registre permettant de changer la définition des données, qui le rend plus ou moins précis.
@@ -62,17 +63,18 @@ Pour la l'écriture des données, les fonctions suivantes sont utilisées  :
 
 Ces fonction ont été écrite gràce à d'autres fonction existantes dans un fichier opencore_I2C.c
 
-Pour afficher les valeurs de l'accéléromètre sur les axes, une nouvelle focntion de lecture est  développé en s'appuyant sur les précédentes.
+Pour afficher les valeurs de l'accéléromètre sur les axes, une nouvelle focntion de lecture est développé en s'appuyant sur les précédentes, et un complément à deux et une multiplication par 3.9 sont effectué pour mettre les données au bont format.
 
 ### La calibration de l'accéléromètre
 
-La même logique est utilisée, mais pour des nombres allant jusqu'à 999. Lorsque le premier compteur cnt1 atteint la valeur 10, le deuxième compteur est incrémenté pour les dizaines, et ainsi de suite. Une fois que le nombre 999 est atteint (les trois compteurs sont égaux à 9), toutes les valeurs des compteurs sont remises à 0, le tout en allumant les afficheurs 7 segments.
+Pour la calibration de l'accéléromètre, en suivant la documentation, nous avons un calcul pour trouver l'offset nécessaire. Il nous reste plusqu'à les écrire dans les registres correspondant après avoir paramétré la précision de l'accéléromètre au plus précis.
 
 
 ### L'affichage sur les 7 segments et ajout des modes en fonction des axes
 
-Pas de changement majeur ici, sauf l'ajout de la déclaration de l'interruption du timer avec la fonction : `alt_irq_register(TIMER_0_IRQ, NULL, irqhandler);`. avec `irqhandler` le nom de l'interruption. 
-Au préalable le timer est paramétré avec une fréquence de 500 ms dans QSYS. Lorsqu'il y a une occurrence de l'interruption du timer, les étapes précédemment expliquées sont effectuées. Une fois les incrémentations effectuées, le flag d'interruption est effacé.
+Une boucle while réalise l'affichage des données sur les 7 segments, et pour les allumer la fonction suivante est utilisée :
+`IOWR_AERA_AVALON_PIO_DATA(PIO_0_BASE, dx);` où dx est le digit à afficher (unité, dizaine,...). Selon la valeur de dx, un affichage est effectué selon le paramétrage dans le fichier seg_bcd.vhd. 
+Enfin, avec un if on compare la valeur des switchs. Selon leur position on affiche la valeur de l'accéléromètre de l'axe X, Y ou Z.
 
 ## Démo
 
