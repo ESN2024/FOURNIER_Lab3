@@ -16,7 +16,8 @@ Le système comprend l'architecture de base avec :
 - Ajouts :
 - Cinq PIO 8 bits pour les 5 7 segments
 - Un PIO 1 bit pour le bouton poussoir
-- 
+- Un timer
+  
 ![image](https://github.com/ESN2024/FOURNIER_Lab3/assets/124307686/db40c9fc-dc10-4919-8dda-8055c75f853e)
 
 
@@ -89,4 +90,4 @@ https://github.com/ESN2024/FOURNIER_Lab3/assets/124307686/0305dce8-d4dc-412e-872
 
 ## Conclusion
 
-Ce TP nous a permis de prendre en main les outils de conception conjointe, tout en utilisant nos connaissances acquises en cours, particulièrement au niveau des interruptions.
+Ce TP nous a permis de prendre en main les outils de conception conjointe, tout en utilisant nos connaissances acquises en cours, particulièrement au niveau des interruptions. De plus, en ayant effectué les LAB précédents, cela à facilité le développement de ce lab3. En effet, les interruptions sont gérées et l'affichage du 7 segment aussi. Le seul soucis etait lié à la documentation qui ne mettait pas en évidence les points particuliers concernant la définition de l'accéléromètre et l'offset.
